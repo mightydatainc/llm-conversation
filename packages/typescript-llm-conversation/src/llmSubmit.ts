@@ -85,6 +85,38 @@ instead of em-dashes or en-dashes; use straight quotes (") and single quotes (')
 `.trim();
 
 /**
+ * Updates the token usage statistics for a given model within an AI client.
+ * This includes both the total token counts and the breakdown by individual model.
+ * Modifies the aiClient object in-situ.
+ * @param aiClient The AI client whose token usage is being updated.
+ * @param modelName The name of the model for which token usage is being recorded.
+ * @param tokenCountInput The number of input tokens to add to the usage statistics.
+ * @param tokenCountOutput The number of output tokens to add to the usage statistics.
+ */
+const updateModelTokenUsage = (
+  aiClient: AIClientLike,
+  modelName: string,
+  tokenCountInput: number,
+  tokenCountOutput: number
+): undefined => {
+  aiClient.token_usage = aiClient.token_usage || {
+    all_models: { total: 0, input: 0, output: 0 },
+    by_model: {},
+  };
+  aiClient.token_usage.all_models.total += tokenCountInput + tokenCountOutput;
+  aiClient.token_usage.all_models.input += tokenCountInput;
+  aiClient.token_usage.all_models.output += tokenCountOutput;
+
+  aiClient.token_usage.by_model[modelName] = aiClient.token_usage.by_model[
+    modelName
+  ] || { total: 0, input: 0, output: 0 };
+  aiClient.token_usage.by_model[modelName].total +=
+    tokenCountInput + tokenCountOutput;
+  aiClient.token_usage.by_model[modelName].input += tokenCountInput;
+  aiClient.token_usage.by_model[modelName].output += tokenCountOutput;
+};
+
+/**
  * Submits a conversation to the AI's API and returns the model's reply.
  *
  * @param messages - The conversation history, including any prior assistant
@@ -175,6 +207,16 @@ export const llmSubmit = async (
             );
           }
         }
+
+        // Feature: Track total token usage.
+        if (llmResponse.usage) {
+          updateModelTokenUsage(
+            aiClient,
+            llmResponse.model || model || 'unknown_model',
+            llmResponse.usage.input_tokens || 0,
+            llmResponse.usage.output_tokens || 0
+          );
+        }
       } else if (llmProviderName === 'anthropic') {
         const anthropicClient = aiClient as AIClientLike;
 
@@ -252,6 +294,16 @@ export const llmSubmit = async (
         ) {
           options.warningCallback(
             `ERROR: Anthropic API response was truncated (max_tokens reached)`
+          );
+        }
+
+        // Feature: Track total token usage.
+        if (llmResponse.usage) {
+          updateModelTokenUsage(
+            aiClient,
+            llmResponse.model || model || 'unknown_model',
+            llmResponse.usage.input_tokens || 0,
+            llmResponse.usage.output_tokens || 0
           );
         }
       } else {

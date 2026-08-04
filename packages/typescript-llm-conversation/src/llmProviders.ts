@@ -2,24 +2,48 @@
  * Minimal interface describing an OpenAI client that can submit requests via
  * `responses.create`. Accepting this interface instead of the concrete SDK
  * class keeps callers decoupled from the SDK version and makes testing easier.
+ * Note that the "token_usage" field is monkeypatched onto the client object
+ * and may not be present in the original SDK.
  */
 export interface OpenAIClientLike {
   responses: {
     create: (args: any, options?: any) => Promise<any> | any;
   };
   messages?: never;
+  token_usage?: TokenUsage;
 }
 
 /**
  * Minimal interface describing an Anthropic client that can submit requests via
  * `messages.create`. Accepting this interface instead of the concrete SDK
  * class keeps callers decoupled from the SDK version and makes testing easier.
+ * Note that the "token_usage" field is monkeypatched onto the client object
+ * and may not be present in the original SDK.
  */
 export interface AnthropicClientLike {
   messages: {
     create: (args: any, options?: any) => Promise<any> | any;
   };
   responses?: never;
+  token_usage?: TokenUsage;
+}
+
+/**
+ * Represents the count of tokens used in an LLM request or response.
+ */
+export interface TokenCounts {
+  total: number;
+  input: number;
+  output: number;
+}
+
+/**
+ * A structure representing the token usage statistics for an LLM client, including
+ * total counts for all models and breakdowns by individual model.
+ */
+export interface TokenUsage {
+  all_models: TokenCounts;
+  by_model: Record<string, TokenCounts>;
 }
 
 export type AIClientLike = OpenAIClientLike | AnthropicClientLike;
