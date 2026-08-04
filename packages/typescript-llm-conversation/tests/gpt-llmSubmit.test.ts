@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { GPT_MODEL_SMART, OpenAIClientLike } from '../src/llmProviders.js';
+import {
+  GPT_MODEL_SMART,
+  OpenAIClientLike,
+  TokenUsage,
+} from '../src/llmProviders.js';
 import { llmSubmit } from '../src/llmSubmit.js';
 
 class FakeOpenAIResponse {
@@ -45,6 +49,7 @@ class FakeOpenAIResponsesAPI {
 
 class FakeOpenAIClient implements OpenAIClientLike {
   responses: FakeOpenAIResponsesAPI;
+  token_usage?: TokenUsage;
 
   constructor(sideEffects: any[] = []) {
     this.responses = new FakeOpenAIResponsesAPI(sideEffects);
@@ -292,6 +297,67 @@ describe('GPT llmSubmit', () => {
     ).rejects.toBeInstanceOf(TypeError);
 
     expect(client.responses.createCalls).toHaveLength(0);
+  });
+
+  it('tracks token usage totals and per-model counts across calls', async () => {
+    const firstResponse = new FakeOpenAIResponse('first') as any;
+    firstResponse.model = 'gpt-test-a';
+    firstResponse.usage = {
+      input_tokens: 10,
+      output_tokens: 4,
+    };
+
+    const secondResponse = new FakeOpenAIResponse('second') as any;
+    secondResponse.model = 'gpt-test-b';
+    secondResponse.usage = {
+      input_tokens: 3,
+      output_tokens: 8,
+    };
+
+    const thirdResponse = new FakeOpenAIResponse('third') as any;
+    thirdResponse.model = 'gpt-test-a';
+    thirdResponse.usage = {
+      input_tokens: 2,
+      output_tokens: 1,
+    };
+
+    const client = new FakeOpenAIClient([
+      firstResponse,
+      secondResponse,
+      thirdResponse,
+    ]);
+
+    await llmSubmit([{ role: 'user', content: 'hello 1' }], client);
+    await llmSubmit([{ role: 'user', content: 'hello 2' }], client);
+    await llmSubmit([{ role: 'user', content: 'hello 3' }], client);
+
+    expect(client.token_usage).toEqual({
+      all_models: {
+        total: 28,
+        input: 15,
+        output: 13,
+      },
+      by_model: {
+        'gpt-test-a': {
+          total: 17,
+          input: 12,
+          output: 5,
+        },
+        'gpt-test-b': {
+          total: 11,
+          input: 3,
+          output: 8,
+        },
+      },
+    });
+  });
+
+  it('does not initialize token_usage when provider usage is missing', async () => {
+    const client = new FakeOpenAIClient([new FakeOpenAIResponse('ok')]);
+
+    await llmSubmit([{ role: 'user', content: 'hello' }], client);
+
+    expect(client.token_usage).toBeUndefined();
   });
 });
 

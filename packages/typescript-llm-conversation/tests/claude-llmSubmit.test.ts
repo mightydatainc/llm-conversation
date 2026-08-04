@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CLAUDE_MODEL_SMART,
   AnthropicClientLike,
+  TokenUsage,
 } from '../src/llmProviders.js';
 import { llmSubmit } from '../src/llmSubmit.js';
 
@@ -46,6 +47,7 @@ class FakeAnthropicMessagesAPI {
 
 class FakeAnthropicClient implements AnthropicClientLike {
   messages: FakeAnthropicMessagesAPI;
+  token_usage?: TokenUsage;
 
   constructor(sideEffects: any[] = []) {
     this.messages = new FakeAnthropicMessagesAPI(sideEffects);
@@ -299,6 +301,67 @@ describe('Claude llmSubmit', () => {
     ).rejects.toBeInstanceOf(TypeError);
 
     expect(client.messages.createCalls).toHaveLength(0);
+  });
+
+  it('tracks token usage totals and per-model counts across calls', async () => {
+    const firstResponse = new FakeAnthropicResponse('first') as any;
+    firstResponse.model = 'claude-test-a';
+    firstResponse.usage = {
+      input_tokens: 9,
+      output_tokens: 5,
+    };
+
+    const secondResponse = new FakeAnthropicResponse('second') as any;
+    secondResponse.model = 'claude-test-b';
+    secondResponse.usage = {
+      input_tokens: 4,
+      output_tokens: 6,
+    };
+
+    const thirdResponse = new FakeAnthropicResponse('third') as any;
+    thirdResponse.model = 'claude-test-a';
+    thirdResponse.usage = {
+      input_tokens: 1,
+      output_tokens: 2,
+    };
+
+    const client = new FakeAnthropicClient([
+      firstResponse,
+      secondResponse,
+      thirdResponse,
+    ]);
+
+    await llmSubmit([{ role: 'user', content: 'hello 1' }], client);
+    await llmSubmit([{ role: 'user', content: 'hello 2' }], client);
+    await llmSubmit([{ role: 'user', content: 'hello 3' }], client);
+
+    expect(client.token_usage).toEqual({
+      all_models: {
+        total: 27,
+        input: 14,
+        output: 13,
+      },
+      by_model: {
+        'claude-test-a': {
+          total: 17,
+          input: 10,
+          output: 7,
+        },
+        'claude-test-b': {
+          total: 10,
+          input: 4,
+          output: 6,
+        },
+      },
+    });
+  });
+
+  it('does not initialize token_usage when provider usage is missing', async () => {
+    const client = new FakeAnthropicClient([new FakeAnthropicResponse('ok')]);
+
+    await llmSubmit([{ role: 'user', content: 'hello' }], client);
+
+    expect(client.token_usage).toBeUndefined();
   });
 });
 
