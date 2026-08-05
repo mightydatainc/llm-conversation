@@ -317,7 +317,7 @@ Nested dict (1 item long):
 
       // Keep the type checker from freaking out over the monkey-patch.
       // @ts-ignore
-      const tokenUsage: TokenUsage = openaiClient.token_usage;
+      const tokenUsage: TokenUsage = anthropicClient.token_usage;
 
       expect(tokenUsage).toBeDefined();
       expect(tokenUsage.all_models.input).toBeGreaterThan(35);
@@ -348,7 +348,7 @@ Nested dict (1 item long):
 
       // Keep the type checker from freaking out over the monkey-patch.
       // @ts-ignore
-      const tokenUsage: TokenUsage = openaiClient.token_usage;
+      const tokenUsage: TokenUsage = anthropicClient.token_usage;
 
       expect(tokenUsage).toBeDefined();
       expect(tokenUsage.all_models.input).toBeGreaterThan(700);

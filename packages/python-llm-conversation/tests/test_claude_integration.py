@@ -6,7 +6,6 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
-
 # Ensure local src layout is importable when running:
 # python -m unittest discover tests
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
@@ -68,14 +67,12 @@ class TestClaudeIntegration(unittest.TestCase):
         anthropic_client = create_client()
         convo = LLMConversation(ai_client=anthropic_client)
 
-        convo.add_user_message(
-            """
+        convo.add_user_message("""
 This is a test to see if I'm correctly calling the Anthropic API to invoke Claude.
 If you can see this, please respond with "Hello World" -- just like that,
 with no additional text or explanation. Do not include punctuation or quotation
 marks. Emit only the words "Hello World", capitalized as shown.
-"""
-        )
+""")
         convo.submit()
 
         reply = convo.get_last_reply_str()
@@ -86,8 +83,7 @@ marks. Emit only the words "Hello World", capitalized as shown.
         convo = LLMConversation(ai_client=anthropic_client)
 
         # Test the submit_user_message convenience method.
-        convo.submit_user_message(
-            """
+        convo.submit_user_message("""
 I'm conducting a test of my REST API response parsing systems.
 If you can see this, please reply with the capital of France.
 Reply only with the name of the city, with no additional text, punctuation,
@@ -95,8 +91,7 @@ or explanation. I'll be comparing your output string to a standard known
 value, so it's important to the integrity of my system that the only
 response you produce be just the name of the city. Standard capitalization
 please -- first letter capitalized, all other letters lower-case.
-"""
-        )
+""")
 
         reply = convo.get_last_reply_str()
         self.assertEqual(reply, "Paris")
@@ -105,8 +100,7 @@ please -- first letter capitalized, all other letters lower-case.
         anthropic_client = create_client()
         convo = LLMConversation(ai_client=anthropic_client)
 
-        convo.add_user_message(
-            """
+        convo.add_user_message("""
 This is a test to see if I'm correctly calling the Anthropic API to invoke Claude.
 
 Please reply with the following JSON object, exactly as shown:
@@ -116,8 +110,7 @@ Please reply with the following JSON object, exactly as shown:
   "success": true,
   "sample_array_data": [1, 2, {"nested_key": "nested_value"}]
 }
-"""
-        )
+""")
         convo.submit(json_response=True)
 
         reply_obj = convo.get_last_reply_dict()
@@ -178,8 +171,7 @@ Please reply with the following JSON object, exactly as shown:
             }
         }
 
-        convo.add_user_message(
-            """
+        convo.add_user_message("""
 Please reply with a JSON object that contains the following data:
 
 Success flag: true
@@ -189,8 +181,7 @@ Sample array data (2 elements long):
     Element 1: 33
 Nested dict (1 item long):
     Value under "nested_key": "foobar"
-"""
-        )
+""")
         convo.submit(json_response=schema)
 
         self.assertEqual(convo.get_last_reply_dict_field("success"), True)
@@ -226,8 +217,7 @@ Nested dict (1 item long):
             "A test schema for structured JSON response",
         )
 
-        convo.add_user_message(
-            """
+        convo.add_user_message("""
 Please reply with a JSON object that contains the following data:
 
 Success flag: true
@@ -237,8 +227,7 @@ Sample array data (2 elements long):
     Element 1: 33
 Nested dict (1 item long):
     Value under "nested_key": "foobar"
-"""
-        )
+""")
         convo.submit(json_response=schema)
 
         self.assertEqual(convo.get_last_reply_dict_field("success"), True)
@@ -316,6 +305,56 @@ Nested dict (1 item long):
         convo.submit(json_response=IMAGE_IDENTIFICATION_SCHEMA)
 
         self.assertEqual(convo.get_last_reply_dict_field("image_subject_enum"), "cat")
+
+    def test_should_track_token_usage(self):
+        anthropic_client = create_client()
+        convo = LLMConversation(ai_client=anthropic_client)
+
+        convo.add_user_message(
+            "Write a 500-word story about a raccoon that steals the Mona Lisa."
+        )
+        convo.submit()
+
+        token_usage = anthropic_client.token_usage
+        self.assertIsNotNone(token_usage)
+        self.assertGreater(token_usage["all_models"]["input"], 35)
+        self.assertLess(token_usage["all_models"]["input"], 65)
+        self.assertGreater(token_usage["all_models"]["output"], 550)
+        self.assertLess(token_usage["all_models"]["output"], 750)
+        self.assertEqual(
+            token_usage["all_models"]["total"],
+            token_usage["all_models"]["input"] + token_usage["all_models"]["output"],
+        )
+
+        self.assertEqual(len(token_usage["by_model"]), 1)
+        model_name = next(iter(token_usage["by_model"].keys()))
+        model_usage = token_usage["by_model"][model_name]
+        self.assertEqual(model_usage["input"], token_usage["all_models"]["input"])
+        self.assertEqual(model_usage["output"], token_usage["all_models"]["output"])
+        self.assertEqual(model_usage["total"], token_usage["all_models"]["total"])
+
+        convo.add_user_message(
+            "Now write a 500-word story about that raccoon's arch-rival, a fox detective."
+        )
+        convo.submit()
+
+        token_usage = anthropic_client.token_usage
+        self.assertIsNotNone(token_usage)
+        self.assertGreater(token_usage["all_models"]["input"], 700)
+        self.assertLess(token_usage["all_models"]["input"], 900)
+        self.assertGreater(token_usage["all_models"]["output"], 1300)
+        self.assertLess(token_usage["all_models"]["output"], 1600)
+        self.assertEqual(
+            token_usage["all_models"]["total"],
+            token_usage["all_models"]["input"] + token_usage["all_models"]["output"],
+        )
+
+        self.assertEqual(len(token_usage["by_model"]), 1)
+        model_name = next(iter(token_usage["by_model"].keys()))
+        model_usage = token_usage["by_model"][model_name]
+        self.assertEqual(model_usage["input"], token_usage["all_models"]["input"])
+        self.assertEqual(model_usage["output"], token_usage["all_models"]["output"])
+        self.assertEqual(model_usage["total"], token_usage["all_models"]["total"])
 
 
 if __name__ == "__main__":
