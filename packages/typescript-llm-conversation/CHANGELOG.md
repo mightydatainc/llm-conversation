@@ -2,6 +2,12 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.0.8] - 2026-08-05
+
+### Fixed
+
+- Corrected a naming-convention error: the `token_usage` field (Pythonic snake_case) introduced in 1.0.7 has been renamed to `tokenUsage` (camelCase) to follow TypeScript conventions. This is a breaking change for any consumer that accessed `client.token_usage` directly.
+
 ## [1.0.7] - 2026-08-04
 
 ### Added

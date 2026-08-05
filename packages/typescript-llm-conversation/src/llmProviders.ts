@@ -2,7 +2,7 @@
  * Minimal interface describing an OpenAI client that can submit requests via
  * `responses.create`. Accepting this interface instead of the concrete SDK
  * class keeps callers decoupled from the SDK version and makes testing easier.
- * Note that the "token_usage" field is monkeypatched onto the client object
+ * Note that the `tokenUsage` field is monkeypatched onto the client object
  * and may not be present in the original SDK.
  */
 export interface OpenAIClientLike {
@@ -17,7 +17,7 @@ export interface OpenAIClientLike {
  * Minimal interface describing an Anthropic client that can submit requests via
  * `messages.create`. Accepting this interface instead of the concrete SDK
  * class keeps callers decoupled from the SDK version and makes testing easier.
- * Note that the "token_usage" field is monkeypatched onto the client object
+ * Note that the `tokenUsage` field is monkeypatched onto the client object
  * and may not be present in the original SDK.
  */
 export interface AnthropicClientLike {

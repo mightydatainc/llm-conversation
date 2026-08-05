@@ -2,6 +2,12 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.0.8] - 2026-08-05
+
+### Changed
+
+- Bumped version to stay in sync with the TypeScript package. No Python-side changes; this release corrects a TypeScript naming-convention error (`token_usage` → `tokenUsage`).
+
 ## [1.0.7] - 2026-08-04
 
 ### Added
