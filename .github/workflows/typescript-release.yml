@@ -48,6 +48,9 @@ jobs:
           cache: "npm"
           cache-dependency-path: packages/typescript-llm-conversation/package-lock.json
 
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: npm ci
 
@@ -105,8 +108,9 @@ jobs:
       - name: Publish to npm
         if: steps.version.outputs.should_publish == 'true' && steps.version.outputs.changed == 'true' && steps.published.outputs.exists != 'true'
         run: |
-          # CI already ran tests/build above, so skip prepublishOnly to avoid duplicate work.
-          npm publish --access public --provenance --ignore-scripts
+          # --provenance is automatic with Trusted Publishing; --ignore-scripts skips redundant prepublishOnly.
+          # https://docs.npmjs.com/trusted-publishers#automatic-provenance-generation
+          npm publish --access public --ignore-scripts
 
       - name: Report release decision
         if: steps.version.outputs.should_publish != 'true' || steps.version.outputs.changed != 'true' || steps.published.outputs.exists == 'true'
