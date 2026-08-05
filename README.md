@@ -77,6 +77,8 @@ For package usage, API reference, and language-specific setup, see:
 
 The project prioritizes practical correctness over synthetic demos. Package-level test suites are designed to protect real integration behavior, including conversation-state management and structured-output workflows.
 
+Python unit tests are run with `unittest` (see the Testing section in `packages/python-llm-conversation/README.md`).
+
 ## Releases
 
 Python and TypeScript packages are versioned and released from this monorepo using repository automation. Release mechanics are kept with each package and workflow configuration.

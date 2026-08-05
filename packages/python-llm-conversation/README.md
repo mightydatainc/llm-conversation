@@ -25,6 +25,23 @@ This package gives you small, composable building blocks for those recurring con
 
 ## Quick Start
 
+## Testing
+
+Run unit tests with Python's built-in `unittest` runner from the package root:
+
+```bash
+python -m unittest discover tests -v
+```
+
+Technically, this runs both the unit tests *and* the integration tests, which have been built using the unit test framework. The integration test modules require provider API keys and are intended for live API validation. They presume the existence of a .env file.
+
+If you want to run *just* the local unit tests that use fakes for cloud services, you can call:
+
+```bash
+python -m unittest tests.test_json_schema_format tests.test_llm_conversation tests.test_gpt_llm_submit tests.test_claude_llm_submit -v
+```
+
+
 ### Stateless Prompt Submission With `llm_submit`
 
 Use this pattern as a wrapper around either provider client. `llm_submit` provides error handling, smart retries, structured input/output type management, and shotgunning.
