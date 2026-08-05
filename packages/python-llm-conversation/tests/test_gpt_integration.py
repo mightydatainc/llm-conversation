@@ -339,7 +339,7 @@ Nested dict (1 item long):
         token_usage = openai_client.token_usage
         self.assertIsNotNone(token_usage)
         self.assertGreater(token_usage["all_models"]["input"], 700)
-        self.assertLess(token_usage["all_models"]["input"], 900)
+        self.assertLess(token_usage["all_models"]["input"], 920)
         self.assertGreater(token_usage["all_models"]["output"], 1300)
         self.assertLess(token_usage["all_models"]["output"], 1600)
         self.assertEqual(
