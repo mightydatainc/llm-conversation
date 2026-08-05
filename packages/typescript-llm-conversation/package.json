@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mighty-Data-Inc/llm-conversation"
+    "url": "git+https://github.com/Mighty-Data-Inc/llm-conversation.git"
   },
   "type": "module",
   "sideEffects": false,
