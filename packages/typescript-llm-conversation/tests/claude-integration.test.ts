@@ -317,26 +317,26 @@ Nested dict (1 item long):
 
       // Keep the type checker from freaking out over the monkey-patch.
       // @ts-ignore
-      const tokenUsage: TokenUsage = anthropicClient.token_usage;
+      const tokenUsage: TokenUsage = anthropicClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.all_models.input).toBeGreaterThan(35);
-      expect(tokenUsage.all_models.input).toBeLessThan(65);
-      expect(tokenUsage.all_models.output).toBeGreaterThan(550);
-      expect(tokenUsage.all_models.output).toBeLessThan(775);
-      expect(tokenUsage.all_models.total).toEqual(
-        tokenUsage.all_models.input + tokenUsage.all_models.output
+      expect(tokenUsage.allModels.input).toBeGreaterThan(35);
+      expect(tokenUsage.allModels.input).toBeLessThan(65);
+      expect(tokenUsage.allModels.output).toBeGreaterThan(550);
+      expect(tokenUsage.allModels.output).toBeLessThan(775);
+      expect(tokenUsage.allModels.total).toEqual(
+        tokenUsage.allModels.input + tokenUsage.allModels.output
       );
 
-      const modelsUsed = Object.keys(tokenUsage.by_model);
+      const modelsUsed = Object.keys(tokenUsage.byModel);
       expect(modelsUsed.length).toEqual(1);
       const modelName = modelsUsed[0];
 
-      const modelUsage = tokenUsage.by_model[modelName];
+      const modelUsage = tokenUsage.byModel[modelName];
       expect(modelUsage).toBeDefined();
-      expect(modelUsage.input).toEqual(tokenUsage.all_models.input);
-      expect(modelUsage.output).toEqual(tokenUsage.all_models.output);
-      expect(modelUsage.total).toEqual(tokenUsage.all_models.total);
+      expect(modelUsage.input).toEqual(tokenUsage.allModels.input);
+      expect(modelUsage.output).toEqual(tokenUsage.allModels.output);
+      expect(modelUsage.total).toEqual(tokenUsage.allModels.total);
     };
     await stage1();
 
@@ -348,26 +348,26 @@ Nested dict (1 item long):
 
       // Keep the type checker from freaking out over the monkey-patch.
       // @ts-ignore
-      const tokenUsage: TokenUsage = anthropicClient.token_usage;
+      const tokenUsage: TokenUsage = anthropicClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.all_models.input).toBeGreaterThan(700);
-      expect(tokenUsage.all_models.input).toBeLessThan(920);
-      expect(tokenUsage.all_models.output).toBeGreaterThan(1300);
-      expect(tokenUsage.all_models.output).toBeLessThan(1600);
-      expect(tokenUsage.all_models.total).toEqual(
-        tokenUsage.all_models.input + tokenUsage.all_models.output
+      expect(tokenUsage.allModels.input).toBeGreaterThan(700);
+      expect(tokenUsage.allModels.input).toBeLessThan(920);
+      expect(tokenUsage.allModels.output).toBeGreaterThan(1300);
+      expect(tokenUsage.allModels.output).toBeLessThan(1600);
+      expect(tokenUsage.allModels.total).toEqual(
+        tokenUsage.allModels.input + tokenUsage.allModels.output
       );
 
-      const modelsUsed = Object.keys(tokenUsage.by_model);
+      const modelsUsed = Object.keys(tokenUsage.byModel);
       expect(modelsUsed.length).toEqual(1);
       const modelName = modelsUsed[0];
 
-      const modelUsage = tokenUsage.by_model[modelName];
+      const modelUsage = tokenUsage.byModel[modelName];
       expect(modelUsage).toBeDefined();
-      expect(modelUsage.input).toEqual(tokenUsage.all_models.input);
-      expect(modelUsage.output).toEqual(tokenUsage.all_models.output);
-      expect(modelUsage.total).toEqual(tokenUsage.all_models.total);
+      expect(modelUsage.input).toEqual(tokenUsage.allModels.input);
+      expect(modelUsage.output).toEqual(tokenUsage.allModels.output);
+      expect(modelUsage.total).toEqual(tokenUsage.allModels.total);
     };
     await stage2();
   }, 180_000);

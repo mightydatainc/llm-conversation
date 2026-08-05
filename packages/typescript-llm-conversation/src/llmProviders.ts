@@ -10,7 +10,7 @@ export interface OpenAIClientLike {
     create: (args: any, options?: any) => Promise<any> | any;
   };
   messages?: never;
-  token_usage?: TokenUsage;
+  tokenUsage?: TokenUsage;
 }
 
 /**
@@ -25,7 +25,7 @@ export interface AnthropicClientLike {
     create: (args: any, options?: any) => Promise<any> | any;
   };
   responses?: never;
-  token_usage?: TokenUsage;
+  tokenUsage?: TokenUsage;
 }
 
 /**
@@ -42,8 +42,8 @@ export interface TokenCounts {
  * total counts for all models and breakdowns by individual model.
  */
 export interface TokenUsage {
-  all_models: TokenCounts;
-  by_model: Record<string, TokenCounts>;
+  allModels: TokenCounts;
+  byModel: Record<string, TokenCounts>;
 }
 
 export type AIClientLike = OpenAIClientLike | AnthropicClientLike;

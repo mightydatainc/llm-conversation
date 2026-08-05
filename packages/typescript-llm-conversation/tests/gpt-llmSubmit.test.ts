@@ -49,7 +49,7 @@ class FakeOpenAIResponsesAPI {
 
 class FakeOpenAIClient implements OpenAIClientLike {
   responses: FakeOpenAIResponsesAPI;
-  token_usage?: TokenUsage;
+  tokenUsage?: TokenUsage;
 
   constructor(sideEffects: any[] = []) {
     this.responses = new FakeOpenAIResponsesAPI(sideEffects);
@@ -331,13 +331,13 @@ describe('GPT llmSubmit', () => {
     await llmSubmit([{ role: 'user', content: 'hello 2' }], client);
     await llmSubmit([{ role: 'user', content: 'hello 3' }], client);
 
-    expect(client.token_usage).toEqual({
-      all_models: {
+    expect(client.tokenUsage).toEqual({
+      allModels: {
         total: 28,
         input: 15,
         output: 13,
       },
-      by_model: {
+      byModel: {
         'gpt-test-a': {
           total: 17,
           input: 12,
@@ -352,12 +352,12 @@ describe('GPT llmSubmit', () => {
     });
   });
 
-  it('does not initialize token_usage when provider usage is missing', async () => {
+  it('does not initialize tokenUsage when provider usage is missing', async () => {
     const client = new FakeOpenAIClient([new FakeOpenAIResponse('ok')]);
 
     await llmSubmit([{ role: 'user', content: 'hello' }], client);
 
-    expect(client.token_usage).toBeUndefined();
+    expect(client.tokenUsage).toBeUndefined();
   });
 });
 

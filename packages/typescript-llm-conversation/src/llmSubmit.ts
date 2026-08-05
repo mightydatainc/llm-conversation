@@ -99,21 +99,21 @@ const updateModelTokenUsage = (
   tokenCountInput: number,
   tokenCountOutput: number
 ): undefined => {
-  aiClient.token_usage = aiClient.token_usage || {
-    all_models: { total: 0, input: 0, output: 0 },
-    by_model: {},
+  aiClient.tokenUsage = aiClient.tokenUsage || {
+    allModels: { total: 0, input: 0, output: 0 },
+    byModel: {},
   };
-  aiClient.token_usage.all_models.total += tokenCountInput + tokenCountOutput;
-  aiClient.token_usage.all_models.input += tokenCountInput;
-  aiClient.token_usage.all_models.output += tokenCountOutput;
+  aiClient.tokenUsage.allModels.total += tokenCountInput + tokenCountOutput;
+  aiClient.tokenUsage.allModels.input += tokenCountInput;
+  aiClient.tokenUsage.allModels.output += tokenCountOutput;
 
-  aiClient.token_usage.by_model[modelName] = aiClient.token_usage.by_model[
+  aiClient.tokenUsage.byModel[modelName] = aiClient.tokenUsage.byModel[
     modelName
   ] || { total: 0, input: 0, output: 0 };
-  aiClient.token_usage.by_model[modelName].total +=
+  aiClient.tokenUsage.byModel[modelName].total +=
     tokenCountInput + tokenCountOutput;
-  aiClient.token_usage.by_model[modelName].input += tokenCountInput;
-  aiClient.token_usage.by_model[modelName].output += tokenCountOutput;
+  aiClient.tokenUsage.byModel[modelName].input += tokenCountInput;
+  aiClient.tokenUsage.byModel[modelName].output += tokenCountOutput;
 };
 
 /**
