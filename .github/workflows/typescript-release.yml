@@ -57,7 +57,7 @@ jobs:
       - name: Build package
         run: npm run build
 
-      - name: Read current and previous TypeScript versions
+      - name: Determine version and whether to publish
         id: version
         shell: bash
         run: |
@@ -65,24 +65,23 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
 
           SHOULD_PUBLISH=false
-          CHANGED=false
-          PREVIOUS_VERSION=""
-
           if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
             SHOULD_PUBLISH=true
-            PREVIOUS_VERSION=$(git show HEAD~1:packages/typescript-llm-conversation/package.json 2>/dev/null | node -p "const fs=require('fs'); const s=fs.readFileSync(0,'utf8'); JSON.parse(s).version" || true)
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SHOULD_PUBLISH=true
           fi
 
-          if [ -z "${PREVIOUS_VERSION}" ]; then
-            if [ "${SHOULD_PUBLISH}" = "true" ]; then
+          # Treat the version as changed if it is not yet on the registry.
+          CHANGED=false
+          if [ "${SHOULD_PUBLISH}" = "true" ]; then
+            if curl -sf "https://registry.npmjs.org/@mightydatainc/llm-conversation/${CURRENT_VERSION}" > /dev/null 2>&1; then
+              CHANGED=false
+            else
               CHANGED=true
             fi
-          elif [ "${CURRENT_VERSION}" != "${PREVIOUS_VERSION}" ]; then
-            CHANGED=true
           fi
 
           echo "current=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "previous=${PREVIOUS_VERSION}" >> "$GITHUB_OUTPUT"
           echo "changed=${CHANGED}" >> "$GITHUB_OUTPUT"
           echo "should_publish=${SHOULD_PUBLISH}" >> "$GITHUB_OUTPUT"
 
@@ -97,7 +96,7 @@ jobs:
           fi
 
           VERSION="${{ steps.version.outputs.current }}"
-          if npm view "@mightydatainc/llm-conversation@${VERSION}" version >/dev/null 2>&1; then
+          if curl -sf "https://registry.npmjs.org/@mightydatainc/llm-conversation/${VERSION}" > /dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -116,5 +115,4 @@ jobs:
           echo "should_publish=${{ steps.version.outputs.should_publish }}"
           echo "version_changed=${{ steps.version.outputs.changed }}"
           echo "current_version=${{ steps.version.outputs.current }}"
-          echo "previous_version=${{ steps.version.outputs.previous }}"
           echo "already_published=${{ steps.published.outputs.exists }}"
