@@ -2,6 +2,12 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.0.7] - 2026-08-04
+
+### Added
+
+- Added tracking of token usage counts. The client objects now monkey-patch a top-level field called `token_usage`, which tallies totals about how many tokens have been spent on LLM submit calls during that client object's lifetime.
+
 ## [1.0.6] - 2026-03-28
 
 ### Fixed
