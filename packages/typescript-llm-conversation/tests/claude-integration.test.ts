@@ -305,6 +305,44 @@ Nested dict (1 item long):
     expect(convo.getLastReplyDictField('image_subject_enum')).toBe('cat');
   }, 180000);
 
+  it('should track token usage', async () => {
+    const anthropicClient = createClient();
+    const convo = new LLMConversation(anthropicClient);
+
+    convo.addUserMessage(
+      'Write a 500-word story about a raccoon that steals the Mona Lisa.'
+    );
+    await convo.submit();
+
+    convo.addUserMessage(
+      "Now write a 500-word story about that raccoon's arch-rival, a fox detective."
+    );
+    await convo.submit();
+
+    // Keep the type checker from freaking out over the monkey-patch.
+    // @ts-ignore
+    const tokenUsage: TokenUsage = anthropicClient.token_usage;
+
+    expect(tokenUsage).toBeDefined();
+    expect(tokenUsage.all_models.input).toBeGreaterThan(700);
+    expect(tokenUsage.all_models.input).toBeLessThan(900);
+    expect(tokenUsage.all_models.output).toBeGreaterThan(1300);
+    expect(tokenUsage.all_models.output).toBeLessThan(1600);
+    expect(tokenUsage.all_models.total).toEqual(
+      tokenUsage.all_models.input + tokenUsage.all_models.output
+    );
+
+    const modelsUsed = Object.keys(tokenUsage.by_model);
+    expect(modelsUsed.length).toEqual(1);
+    const modelName = modelsUsed[0];
+
+    const modelUsage = tokenUsage.by_model[modelName];
+    expect(modelUsage).toBeDefined();
+    expect(modelUsage.input).toEqual(tokenUsage.all_models.input);
+    expect(modelUsage.output).toEqual(tokenUsage.all_models.output);
+    expect(modelUsage.total).toEqual(tokenUsage.all_models.total);
+  }, 180_000);
+
   it.skip('should use shotgun to get a reliable answer on an unreliable question', async () => {
     // Adjust this number as needed to achieve a reliable pass rate.
     // Huge number of shotguns barrels is needed to get a consistent pass on this test,

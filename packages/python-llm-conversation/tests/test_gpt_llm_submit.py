@@ -4,7 +4,6 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
-
 # Ensure local src layout is importable when running:
 # python -m unittest discover tests
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
@@ -16,16 +15,24 @@ pkg = import_module("mightydatainc_llm_conversation")
 llm_submit = getattr(pkg, "llm_submit")
 
 
+class FakeUsage:
+    def __init__(self, input_tokens: int = 0, output_tokens: int = 0):
+        self.input_tokens = input_tokens
+        self.output_tokens = output_tokens
+
+
 class FakeOpenAIResponse:
     def __init__(
         self,
         output_text: Any = "",
         error: Any = None,
         incomplete_details: Any = None,
+        usage: Any = None,
     ):
         self.output_text = output_text
         self.error = error
         self.incomplete_details = incomplete_details
+        self.usage = usage
 
 
 class FakeOpenAIResponsesAPI:
@@ -49,6 +56,10 @@ class FakeOpenAIResponsesAPI:
 class FakeOpenAIClient:
     def __init__(self, side_effects: list[Any] | None = None):
         self.responses = FakeOpenAIResponsesAPI(side_effects)
+        self.token_usage: dict[str, Any] = {
+            "all_models": {"total": 0, "input": 0, "output": 0},
+            "by_model": {},
+        }
 
 
 class OpenAIError(Exception):
@@ -118,6 +129,18 @@ class TestGPTLlmSubmit(unittest.TestCase):
         self.assertEqual(result, {"value": 1})
         request = client.responses.create_calls[0]
         self.assertEqual(request.get("text"), {"format": {"type": "json_object"}})
+
+    def test_tracks_token_usage_on_client(self):
+        client = FakeOpenAIClient([FakeOpenAIResponse("ok", usage=FakeUsage(4, 6))])
+
+        llm_submit(messages=[{"role": "user", "content": "hello"}], ai_client=client)
+
+        self.assertEqual(client.token_usage["all_models"]["total"], 10)
+        self.assertEqual(client.token_usage["all_models"]["input"], 4)
+        self.assertEqual(client.token_usage["all_models"]["output"], 6)
+        self.assertEqual(client.token_usage["by_model"]["gpt-4.1"]["total"], 10)
+        self.assertEqual(client.token_usage["by_model"]["gpt-4.1"]["input"], 4)
+        self.assertEqual(client.token_usage["by_model"]["gpt-4.1"]["output"], 6)
 
     def test_finds_and_parses_json_even_with_leading_and_trailing_cruft(self):
         client = FakeOpenAIClient(

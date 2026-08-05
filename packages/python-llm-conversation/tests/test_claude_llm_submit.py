@@ -5,7 +5,6 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
-
 # Ensure local src layout is importable when running:
 # python -m unittest discover tests
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
@@ -23,13 +22,25 @@ class FakeAnthropicTextBlock:
         self.text = text
 
 
+class FakeUsage:
+    def __init__(self, input_tokens: int = 0, output_tokens: int = 0):
+        self.input_tokens = input_tokens
+        self.output_tokens = output_tokens
+
+
 class FakeAnthropicResponse:
-    def __init__(self, text: Any = "", stop_reason: str = "end_turn"):
+    def __init__(
+        self,
+        text: Any = "",
+        stop_reason: str = "end_turn",
+        usage: Any = None,
+    ):
         if text is None:
             self.content = None
         else:
             self.content = [FakeAnthropicTextBlock(text)]
         self.stop_reason = stop_reason
+        self.usage = usage
 
 
 class FakeAnthropicMessagesAPI:
@@ -53,6 +64,10 @@ class FakeAnthropicMessagesAPI:
 class FakeAnthropicClient:
     def __init__(self, side_effects: list[Any] | None = None):
         self.messages = FakeAnthropicMessagesAPI(side_effects)
+        self.token_usage: dict[str, Any] = {
+            "all_models": {"total": 0, "input": 0, "output": 0},
+            "by_model": {},
+        }
 
 
 class AnthropicError(Exception):
@@ -115,6 +130,20 @@ class TestClaudeLlmSubmit(unittest.TestCase):
         )
 
         self.assertEqual(result, {"value": 1})
+
+    def test_tracks_token_usage_on_client(self):
+        client = FakeAnthropicClient(
+            [FakeAnthropicResponse("ok", usage=FakeUsage(3, 7))]
+        )
+
+        llm_submit(messages=[{"role": "user", "content": "hello"}], ai_client=client)
+
+        self.assertEqual(client.token_usage["all_models"]["total"], 10)
+        self.assertEqual(client.token_usage["all_models"]["input"], 3)
+        self.assertEqual(client.token_usage["all_models"]["output"], 7)
+        self.assertEqual(client.token_usage["by_model"]["claude-opus-4-6"]["total"], 10)
+        self.assertEqual(client.token_usage["by_model"]["claude-opus-4-6"]["input"], 3)
+        self.assertEqual(client.token_usage["by_model"]["claude-opus-4-6"]["output"], 7)
 
     def test_finds_and_parses_json_even_with_leading_and_trailing_cruft(self):
         client = FakeAnthropicClient(

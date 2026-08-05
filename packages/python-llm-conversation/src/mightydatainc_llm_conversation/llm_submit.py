@@ -12,6 +12,41 @@ from .llm_providers import (
 from .llm_submit_shotgun import llm_submit_shotgun
 
 
+def _update_model_token_usage(
+    ai_client: Any,
+    model_name: str,
+    token_count_input: int,
+    token_count_output: int,
+) -> None:
+    if (
+        not hasattr(ai_client, "token_usage")
+        or getattr(ai_client, "token_usage") is None
+    ):
+        ai_client.token_usage = {
+            "all_models": {"total": 0, "input": 0, "output": 0},
+            "by_model": {},
+        }
+
+    ai_client.token_usage["all_models"]["total"] += (
+        token_count_input + token_count_output
+    )
+    ai_client.token_usage["all_models"]["input"] += token_count_input
+    ai_client.token_usage["all_models"]["output"] += token_count_output
+
+    if model_name not in ai_client.token_usage["by_model"]:
+        ai_client.token_usage["by_model"][model_name] = {
+            "total": 0,
+            "input": 0,
+            "output": 0,
+        }
+
+    ai_client.token_usage["by_model"][model_name]["total"] += (
+        token_count_input + token_count_output
+    )
+    ai_client.token_usage["by_model"][model_name]["input"] += token_count_input
+    ai_client.token_usage["by_model"][model_name]["output"] += token_count_output
+
+
 def is_retryable_openai_error(error: Exception) -> bool:
     """Detect retryable OpenAI-style errors by class name."""
     name = error.__class__.__name__ or ""
@@ -119,6 +154,15 @@ def llm_submit(
                 if not isinstance(getattr(llm_response, "output_text", None), str):
                     raise TypeError("OpenAI API response output_text must be a string")
 
+                usage = getattr(llm_response, "usage", None)
+                if usage is not None:
+                    _update_model_token_usage(
+                        ai_client,
+                        model or "",
+                        int(getattr(usage, "input_tokens", 0) or 0),
+                        int(getattr(usage, "output_tokens", 0) or 0),
+                    )
+
                 llm_reply = llm_response.output_text.strip()
 
                 if options["warning_callback"]:
@@ -181,6 +225,15 @@ def llm_submit(
                         }
 
                 llm_response = ai_client.messages.create(**payload_body)
+
+                usage = getattr(llm_response, "usage", None)
+                if usage is not None:
+                    _update_model_token_usage(
+                        ai_client,
+                        model or "",
+                        int(getattr(usage, "input_tokens", 0) or 0),
+                        int(getattr(usage, "output_tokens", 0) or 0),
+                    )
 
                 text_blocks = [
                     block

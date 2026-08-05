@@ -16,9 +16,7 @@
     ".": {
       "types": "./dist/src/index.d.ts",
       "require": "./dist-cjs/src/index.js",
-      "import": "./dist/src/index.js",
-      "node": "./dist/src/index.js",
-      "default": "./dist/src/index.js"
+      "import": "./dist/src/index.js"
     },
     "./package.json": "./package.json"
   },
