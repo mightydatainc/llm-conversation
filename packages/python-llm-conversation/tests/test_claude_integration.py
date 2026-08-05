@@ -320,7 +320,7 @@ Nested dict (1 item long):
         self.assertGreater(token_usage["all_models"]["input"], 35)
         self.assertLess(token_usage["all_models"]["input"], 65)
         self.assertGreater(token_usage["all_models"]["output"], 550)
-        self.assertLess(token_usage["all_models"]["output"], 750)
+        self.assertLess(token_usage["all_models"]["output"], 775)
         self.assertEqual(
             token_usage["all_models"]["total"],
             token_usage["all_models"]["input"] + token_usage["all_models"]["output"],

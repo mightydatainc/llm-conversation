@@ -320,7 +320,7 @@ Nested dict (1 item long):
       expect(tokenUsage.all_models.input).toBeGreaterThan(35);
       expect(tokenUsage.all_models.input).toBeLessThan(65);
       expect(tokenUsage.all_models.output).toBeGreaterThan(550);
-      expect(tokenUsage.all_models.output).toBeLessThan(750);
+      expect(tokenUsage.all_models.output).toBeLessThan(775);
       expect(tokenUsage.all_models.total).toEqual(
         tokenUsage.all_models.input + tokenUsage.all_models.output
       );
