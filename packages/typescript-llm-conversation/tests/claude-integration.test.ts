@@ -78,7 +78,7 @@ please -- first letter capitalized, all other letters lower-case.
 
     const reply = convo.getLastReplyStr();
     expect(reply).toBe('Paris');
-  });
+  }, 30000);
 
   it('should reply with a general-form JSON object', async () => {
     const anthropicClient = createClient();
