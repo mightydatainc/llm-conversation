@@ -7,7 +7,7 @@ import {
 } from '../src/llmProviders.js';
 import { llmSubmit } from '../src/llmSubmit.js';
 
-class FakeOpenAIResponse {
+class FakeDeepSeekResponse {
   output_text: any;
   error: any;
   incomplete_details: any;
@@ -23,7 +23,7 @@ class FakeOpenAIResponse {
   }
 }
 
-class FakeOpenAIResponsesAPI {
+class FakeDeepSeekResponsesAPI {
   sideEffects: any[];
   createCalls: Array<Record<string, unknown>>;
 
@@ -36,7 +36,7 @@ class FakeOpenAIResponsesAPI {
     this.createCalls.push(kwargs);
 
     if (!this.sideEffects.length) {
-      return new FakeOpenAIResponse();
+      return new FakeDeepSeekResponse();
     }
 
     const next = this.sideEffects.shift();
@@ -47,19 +47,20 @@ class FakeOpenAIResponsesAPI {
   }
 }
 
-class FakeOpenAIClient implements OpenAIClientLike {
-  responses: FakeOpenAIResponsesAPI;
+class FakeDeepSeekClient implements OpenAIClientLike {
+  baseURL = 'https://api.deepseek.com';
+  responses: FakeDeepSeekResponsesAPI;
   tokenUsage?: TokenUsage;
 
   constructor(sideEffects: any[] = []) {
-    this.responses = new FakeOpenAIResponsesAPI(sideEffects);
+    this.responses = new FakeDeepSeekResponsesAPI(sideEffects);
   }
 }
 
-class OpenAIError extends Error {
+class DeepSeekError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'OpenAIError';
+    this.name = 'DeepSeekError';
   }
 }
 
@@ -72,7 +73,7 @@ class BadRequestError extends Error {
 
 describe('DeepSeek llmSubmit', () => {
   it('uses default model and omits text config when json mode is disabled', async () => {
-    const client = new FakeOpenAIClient([new FakeOpenAIResponse('ok')]);
+    const client = new FakeDeepSeekClient([new FakeDeepSeekResponse('ok')]);
 
     const result = await llmSubmit(
       [{ role: 'user', content: 'Hello' }],
@@ -87,7 +88,7 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('prepends datetime system message and keeps user messages after it', async () => {
-    const client = new FakeOpenAIClient([new FakeOpenAIResponse('ok')]);
+    const client = new FakeDeepSeekClient([new FakeDeepSeekResponse('ok')]);
     const messages = [{ role: 'user', content: 'Hello' }];
 
     await llmSubmit(messages, client);
@@ -101,7 +102,7 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('replaces stale datetime messages and keeps other system messages', async () => {
-    const client = new FakeOpenAIClient([new FakeOpenAIResponse('ok')]);
+    const client = new FakeDeepSeekClient([new FakeDeepSeekResponse('ok')]);
     const messages = [
       { role: 'system', content: '!DATETIME: old timestamp' },
       { role: 'system', content: 'keep me' },
@@ -124,8 +125,8 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('supports json_response=true with json_object text format', async () => {
-    const client = new FakeOpenAIClient([
-      new FakeOpenAIResponse('{"value":1}'),
+    const client = new FakeDeepSeekClient([
+      new FakeDeepSeekResponse('{"value":1}'),
     ]);
 
     const result = await llmSubmit(
@@ -146,8 +147,8 @@ describe('DeepSeek llmSubmit', () => {
     // pick up where it left off and produce the rest of the JSON object, without
     // the leading curly brace. We thus omit the leading curly brace in our virtual
     // response to simulate this.
-    const client = new FakeOpenAIClient([
-      new FakeOpenAIResponse(
+    const client = new FakeDeepSeekClient([
+      new FakeDeepSeekResponse(
         'Sure! Here is some JSON! {"value":1} Need anything else?'
       ),
     ]);
@@ -164,8 +165,8 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('parses first json object when response contains trailing json', async () => {
-    const client = new FakeOpenAIClient([
-      new FakeOpenAIResponse('{"first":1}{"second":2}'),
+    const client = new FakeDeepSeekClient([
+      new FakeDeepSeekResponse('{"first":1}{"second":2}'),
     ]);
 
     const result = await llmSubmit(
@@ -179,11 +180,11 @@ describe('DeepSeek llmSubmit', () => {
     expect(result).toEqual({ first: 1 });
   });
 
-  it('retries openai errors and succeeds', async () => {
+  it('retries deepseek errors and succeeds', async () => {
     const warnings: string[] = [];
-    const client = new FakeOpenAIClient([
-      new OpenAIError('temporary'),
-      new FakeOpenAIResponse('ok'),
+    const client = new FakeDeepSeekClient([
+      new DeepSeekError('temporary'),
+      new FakeDeepSeekResponse('ok'),
     ]);
 
     const result = await llmSubmit(
@@ -199,16 +200,16 @@ describe('DeepSeek llmSubmit', () => {
     expect(result).toBe('ok');
     expect(client.responses.createCalls).toHaveLength(2);
     expect(warnings).toHaveLength(1);
-    expect(warnings[0].toLowerCase()).toContain('openai');
+    expect(warnings[0].toLowerCase()).toContain('deepseek');
     expect(warnings[0]).toContain('API error');
     expect(warnings[0]).toContain('Retrying (attempt 1 of 2)');
   });
 
   it('retries json decode errors and succeeds', async () => {
     const warnings: string[] = [];
-    const client = new FakeOpenAIClient([
-      new FakeOpenAIResponse('not json'),
-      new FakeOpenAIResponse('{"ok":true}'),
+    const client = new FakeDeepSeekClient([
+      new FakeDeepSeekResponse('not json'),
+      new FakeDeepSeekResponse('{"ok":true}'),
     ]);
 
     const result = await llmSubmit(
@@ -231,7 +232,7 @@ describe('DeepSeek llmSubmit', () => {
     const badRequestError = new BadRequestError(
       "Invalid type for 'input[11].content': expected one of an array of objects or string, but got an object instead."
     );
-    const client = new FakeOpenAIClient([badRequestError]);
+    const client = new FakeDeepSeekClient([badRequestError]);
 
     await expect(
       llmSubmit([{ role: 'user', content: 'hello' }], client, {
@@ -244,7 +245,7 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('throws for malformed response output_text without retry', async () => {
-    const client = new FakeOpenAIClient([new FakeOpenAIResponse(null)]);
+    const client = new FakeDeepSeekClient([new FakeDeepSeekResponse(null)]);
 
     await expect(
       llmSubmit([{ role: 'user', content: 'hello' }], client, {
@@ -267,8 +268,8 @@ describe('DeepSeek llmSubmit', () => {
         },
       },
     };
-    const client = new FakeOpenAIClient([
-      new FakeOpenAIResponse('{"value":42}'),
+    const client = new FakeDeepSeekClient([
+      new FakeDeepSeekResponse('{"value":42}'),
     ]);
 
     const result = await llmSubmit(
@@ -283,8 +284,8 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('throws immediately if jsonResponse object cannot be JSONized', async () => {
-    const client = new FakeOpenAIClient([
-      new FakeOpenAIResponse('{"unused":true}'),
+    const client = new FakeDeepSeekClient([
+      new FakeDeepSeekResponse('{"unused":true}'),
     ]);
 
     const recursiveObject: any = { foo: 'bar' };
@@ -300,28 +301,28 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('tracks token usage totals and per-model counts across calls', async () => {
-    const firstResponse = new FakeOpenAIResponse('first') as any;
+    const firstResponse = new FakeDeepSeekResponse('first') as any;
     firstResponse.model = 'deepseek-test-a';
     firstResponse.usage = {
       input_tokens: 10,
       output_tokens: 4,
     };
 
-    const secondResponse = new FakeOpenAIResponse('second') as any;
+    const secondResponse = new FakeDeepSeekResponse('second') as any;
     secondResponse.model = 'deepseek-test-b';
     secondResponse.usage = {
       input_tokens: 3,
       output_tokens: 8,
     };
 
-    const thirdResponse = new FakeOpenAIResponse('third') as any;
+    const thirdResponse = new FakeDeepSeekResponse('third') as any;
     thirdResponse.model = 'deepseek-test-a';
     thirdResponse.usage = {
       input_tokens: 2,
       output_tokens: 1,
     };
 
-    const client = new FakeOpenAIClient([
+    const client = new FakeDeepSeekClient([
       firstResponse,
       secondResponse,
       thirdResponse,
@@ -353,7 +354,7 @@ describe('DeepSeek llmSubmit', () => {
   });
 
   it('does not initialize tokenUsage when provider usage is missing', async () => {
-    const client = new FakeOpenAIClient([new FakeOpenAIResponse('ok')]);
+    const client = new FakeDeepSeekClient([new FakeDeepSeekResponse('ok')]);
 
     await llmSubmit([{ role: 'user', content: 'hello' }], client);
 
@@ -364,12 +365,12 @@ describe('DeepSeek llmSubmit', () => {
 describe('DeepSeek llmSubmit shotgun', () => {
   const messages = [{ role: 'user', content: 'Hello' }];
 
-  function makeClient(): FakeOpenAIClient {
-    return new FakeOpenAIClient();
+  function makeClient(): FakeDeepSeekClient {
+    return new FakeDeepSeekClient();
   }
 
   async function callSubmit(
-    client: FakeOpenAIClient,
+    client: FakeDeepSeekClient,
     options: Record<string, unknown> = {}
   ) {
     return llmSubmit(messages, client, options as any);
@@ -460,12 +461,12 @@ describe('DeepSeek llmSubmit shotgun', () => {
 
   it('preserves warningCallback in shotgun mode when workers retry', async () => {
     const warnings: string[] = [];
-    const client = new FakeOpenAIClient([
-      new OpenAIError('temporary'),
-      new FakeOpenAIResponse('worker ok 1'),
-      new FakeOpenAIResponse('worker ok 2'),
-      new FakeOpenAIResponse('ponder ok'),
-      new FakeOpenAIResponse('final ok'),
+    const client = new FakeDeepSeekClient([
+      new DeepSeekError('temporary'),
+      new FakeDeepSeekResponse('worker ok 1'),
+      new FakeDeepSeekResponse('worker ok 2'),
+      new FakeDeepSeekResponse('ponder ok'),
+      new FakeDeepSeekResponse('final ok'),
     ]);
 
     const result = await callSubmit(client, {
