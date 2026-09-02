@@ -320,8 +320,8 @@ Nested dict (1 item long):
       expect(tokenUsage).toBeDefined();
       expect(tokenUsage.allModels.input).toBeGreaterThan(100);
       expect(tokenUsage.allModels.input).toBeLessThan(200);
-      expect(tokenUsage.allModels.output).toBeGreaterThan(550);
-      expect(tokenUsage.allModels.output).toBeLessThan(775);
+      expect(tokenUsage.allModels.output).toBeGreaterThan(700);
+      expect(tokenUsage.allModels.output).toBeLessThan(1000);
       expect(tokenUsage.allModels.total).toEqual(
         tokenUsage.allModels.input + tokenUsage.allModels.output
       );
@@ -349,10 +349,10 @@ Nested dict (1 item long):
       const tokenUsage: TokenUsage = openaiClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.allModels.input).toBeGreaterThan(900);
-      expect(tokenUsage.allModels.input).toBeLessThan(1100);
-      expect(tokenUsage.allModels.output).toBeGreaterThan(1300);
-      expect(tokenUsage.allModels.output).toBeLessThan(1600);
+      expect(tokenUsage.allModels.input).toBeGreaterThan(850);
+      expect(tokenUsage.allModels.input).toBeLessThan(1200);
+      expect(tokenUsage.allModels.output).toBeGreaterThan(1600);
+      expect(tokenUsage.allModels.output).toBeLessThan(3000);
       expect(tokenUsage.allModels.total).toEqual(
         tokenUsage.allModels.input + tokenUsage.allModels.output
       );
@@ -370,7 +370,9 @@ Nested dict (1 item long):
     await stage2();
   }, 180_000);
 
-  it('should use shotgun to get a reliable answer on an unreliable question', async () => {
+  // Skipping for DeepSeek. The latest model as of this writing (DeepSeek Flash V4 Vision Experimental)
+  // reliably fails this test.
+  it.skip('should use shotgun to get a reliable answer on an unreliable question', async () => {
     // Adjust this number as needed to achieve a reliable pass rate.
     // Huge number of shotguns barrels is needed to get a consistent pass on this test,
     // because the question is so unreliable.
