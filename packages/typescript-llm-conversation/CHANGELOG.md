@@ -2,6 +2,13 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.0.9] - 2026-09-02
+
+### Expanded
+
+- Added DeepSeek support. It's so similar to OpenAI that I made it simply re-use the OpenAI pathway.
+
+
 ## [1.0.8] - 2026-08-05
 
 ### Fixed
