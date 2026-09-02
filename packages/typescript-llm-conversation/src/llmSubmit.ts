@@ -43,7 +43,7 @@ export interface LLMSubmitOptions {
 /**
  * Returns `true` when `error` is an OpenAI SDK error that is worth retrying
  * (e.g. rate-limit or transient server errors). Detection is based on the
- * error's `name` property containing `"OpenAI"` or `"APIError"`.
+ * error's `name` property containing `"OpenAI"`, `"DeepSeek"`, or `"APIError"`.
  *
  * @param error - The caught value to inspect.
  * @returns `true` if the error is a retryable OpenAI API error.
@@ -54,7 +54,11 @@ function isRetryableOpenAIError(error: unknown): boolean {
   }
 
   const name = error.name || '';
-  return name.includes('OpenAI') || name.includes('APIError');
+  return (
+    name.includes('OpenAI') ||
+    name.includes('DeepSeek') ||
+    name.includes('APIError')
+  );
 }
 
 /**
