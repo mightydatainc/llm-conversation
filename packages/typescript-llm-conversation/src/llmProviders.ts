@@ -11,6 +11,7 @@ export interface OpenAIClientLike {
   };
   messages?: never;
   tokenUsage?: TokenUsage;
+  baseURL?: string;
 }
 
 /**
@@ -26,6 +27,7 @@ export interface AnthropicClientLike {
   };
   responses?: never;
   tokenUsage?: TokenUsage;
+  baseURL?: string;
 }
 
 /**
@@ -48,7 +50,7 @@ export interface TokenUsage {
 
 export type AIClientLike = OpenAIClientLike | AnthropicClientLike;
 
-export type LLMProviderName = 'openai' | 'anthropic';
+export type LLMProviderName = 'openai' | 'anthropic' | 'deepseek';
 export type LLMModelTier = 'cheap' | 'standard' | 'smart' | 'vision';
 
 /**
@@ -62,6 +64,9 @@ export const identifyLLMProvider = (
   if ('messages' in aiClient && aiClient.messages != null) {
     return 'anthropic';
   }
+  if (aiClient.baseURL && aiClient.baseURL.toLowerCase().includes('deepseek')) {
+    return 'deepseek';
+  }
   return 'openai';
 };
 
@@ -74,6 +79,11 @@ export const CLAUDE_MODEL_CHEAP = 'claude-haiku-4-5-20251001';
 export const CLAUDE_MODEL_STANDARD = 'claude-sonnet-4-6';
 export const CLAUDE_MODEL_SMART = 'claude-opus-4-6';
 export const CLAUDE_MODEL_VISION = 'claude-opus-4-6';
+
+export const DEEPSEEK_MODEL_CHEAP = 'deepseek-v4-flash';
+export const DEEPSEEK_MODEL_STANDARD = 'deepseek-v4-flash-vision-exp';
+export const DEEPSEEK_MODEL_SMART = 'deepseek-v4-flash-vision-exp';
+export const DEEPSEEK_MODEL_VISION = 'deepseek-v4-flash-vision-exp';
 
 export const LLM_RETRY_LIMIT_DEFAULT = 5;
 export const LLM_RETRY_BACKOFF_TIME_SECONDS_DEFAULT = 30;
@@ -113,6 +123,17 @@ export const getModelName = (
           return CLAUDE_MODEL_SMART;
         case 'vision':
           return CLAUDE_MODEL_VISION;
+      }
+    case 'deepseek':
+      switch (tier) {
+        case 'cheap':
+          return DEEPSEEK_MODEL_CHEAP;
+        case 'standard':
+          return DEEPSEEK_MODEL_STANDARD;
+        case 'smart':
+          return DEEPSEEK_MODEL_SMART;
+        case 'vision':
+          return DEEPSEEK_MODEL_VISION;
       }
   }
   throw new Error(`Unsupported provider or tier: ${provider}, ${tier}`);

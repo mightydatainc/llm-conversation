@@ -176,7 +176,7 @@ export const llmSubmit = async (
     let llmReply = '';
 
     try {
-      if (llmProviderName === 'openai') {
+      if (llmProviderName === 'openai' || llmProviderName === 'deepseek') {
         const openaiClient = aiClient as AIClientLike;
         const payloadBody: any = {
           model,

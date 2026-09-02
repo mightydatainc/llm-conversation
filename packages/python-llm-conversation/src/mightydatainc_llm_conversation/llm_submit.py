@@ -133,7 +133,7 @@ def llm_submit(
         llm_reply = ""
 
         try:
-            if llm_provider_name == "openai":
+            if llm_provider_name == "openai" or llm_provider_name == "deepseek":
                 payload_body: dict[str, Any] = {
                     "model": model,
                     "input": prepared_messages,
