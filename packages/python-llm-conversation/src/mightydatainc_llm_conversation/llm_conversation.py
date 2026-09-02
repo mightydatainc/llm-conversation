@@ -178,7 +178,7 @@ class LLMConversation(list[dict[str, Any]]):
                 "LLM provider cannot be identified. Please set an AI client with a supported provider."
             )
 
-        if llm_provider == "openai":
+        if llm_provider == "openai" or llm_provider == "deepseek":
             self.append(
                 {
                     "role": role,

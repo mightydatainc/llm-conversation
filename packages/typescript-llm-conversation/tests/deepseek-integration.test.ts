@@ -4,7 +4,7 @@ import { OpenAI } from 'openai';
 import { describe, expect, it } from 'vitest';
 import { LLMConversation } from '../src/llmConversation.js';
 import { JSONSchemaFormat } from '../src/jsonSchemaFormat.js';
-import { GPT_MODEL_VISION, TokenUsage } from '../src/llmProviders.js';
+import { DEEPSEEK_MODEL_VISION, TokenUsage } from '../src/llmProviders.js';
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY?.trim();
 if (!DEEPSEEK_API_KEY) {
@@ -242,7 +242,7 @@ Nested dict (1 item long):
     const convo = new LLMConversation(
       openaiClient,
       undefined,
-      GPT_MODEL_VISION
+      DEEPSEEK_MODEL_VISION
     );
 
     // Load the image ./fixtures/phoenix.png
@@ -282,7 +282,7 @@ Nested dict (1 item long):
     const convo = new LLMConversation(
       openaiClient,
       undefined,
-      GPT_MODEL_VISION
+      DEEPSEEK_MODEL_VISION
     );
 
     // Load the image ./fixtures/phoenix.png
@@ -318,8 +318,8 @@ Nested dict (1 item long):
       const tokenUsage: TokenUsage = openaiClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.allModels.input).toBeGreaterThan(35);
-      expect(tokenUsage.allModels.input).toBeLessThan(65);
+      expect(tokenUsage.allModels.input).toBeGreaterThan(100);
+      expect(tokenUsage.allModels.input).toBeLessThan(200);
       expect(tokenUsage.allModels.output).toBeGreaterThan(550);
       expect(tokenUsage.allModels.output).toBeLessThan(775);
       expect(tokenUsage.allModels.total).toEqual(
@@ -349,8 +349,8 @@ Nested dict (1 item long):
       const tokenUsage: TokenUsage = openaiClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.allModels.input).toBeGreaterThan(700);
-      expect(tokenUsage.allModels.input).toBeLessThan(920);
+      expect(tokenUsage.allModels.input).toBeGreaterThan(900);
+      expect(tokenUsage.allModels.input).toBeLessThan(1100);
       expect(tokenUsage.allModels.output).toBeGreaterThan(1300);
       expect(tokenUsage.allModels.output).toBeLessThan(1600);
       expect(tokenUsage.allModels.total).toEqual(

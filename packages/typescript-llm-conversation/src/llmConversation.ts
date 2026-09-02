@@ -297,7 +297,7 @@ export class LLMConversation extends Array<ConversationMessage> {
         'LLM provider cannot be identified. Please set an AI client with a supported provider.'
       );
     }
-    if (llmProvider === 'openai') {
+    if (llmProvider === 'openai' || llmProvider === 'deepseek') {
       const gptMsgWithImage = {
         role: role,
         content: [
