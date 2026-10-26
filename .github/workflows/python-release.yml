@@ -33,8 +33,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -47,7 +45,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          python -m pip install hatch twine
+          python -m pip install hatch twine packaging
 
       - name: Run tests
         run: python -u -m unittest discover -v -s tests
@@ -58,62 +56,51 @@ jobs:
       - name: Validate artifacts
         run: python -m twine check dist/*
 
-      - name: Read current and previous Python versions
+      - name: Determine version and whether to publish
         id: version
-        shell: bash
+        shell: python
         run: |
-          set -euo pipefail
-          CURRENT_VERSION=$(grep -E '^version\s*=\s*"' pyproject.toml | sed -E 's/version\s*=\s*"([^"]+)"/\1/')
+          import json
+          import os
+          import tomllib
+          from urllib.error import HTTPError
+          from urllib.request import urlopen
 
-          SHOULD_PUBLISH=false
-          CHANGED=false
-          PREVIOUS_VERSION=""
+          from packaging.version import Version
 
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            SHOULD_PUBLISH=true
-            PREVIOUS_VERSION=$(git show HEAD~1:packages/python-llm-conversation/pyproject.toml 2>/dev/null | grep -E '^version\s*=\s*"' | sed -E 's/version\s*=\s*"([^"]+)"/\1/' || true)
-          fi
+          with open("pyproject.toml", "rb") as metadata:
+              project = tomllib.load(metadata)["project"]
+          current = Version(project["version"])
+          eligible = (
+              os.environ["GITHUB_REF"] == "refs/heads/main"
+              and os.environ["GITHUB_EVENT_NAME"] in ("push", "workflow_dispatch")
+          )
+          latest = None
+          publish = False
+          if eligible:
+              try:
+                  with urlopen(f"https://pypi.org/pypi/{project['name']}/json", timeout=30) as response:
+                      releases = json.load(response)["releases"]
+              except HTTPError as error:
+                  if error.code != 404:
+                      raise
+                  releases = {}
+              latest = max((Version(version) for version in releases), default=None)
+              publish = latest is None or current > latest
 
-          if [ -z "${PREVIOUS_VERSION}" ]; then
-            if [ "${SHOULD_PUBLISH}" = "true" ]; then
-              CHANGED=true
-            fi
-          elif [ "${CURRENT_VERSION}" != "${PREVIOUS_VERSION}" ]; then
-            CHANGED=true
-          fi
-
-          echo "current=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "previous=${PREVIOUS_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "changed=${CHANGED}" >> "$GITHUB_OUTPUT"
-          echo "should_publish=${SHOULD_PUBLISH}" >> "$GITHUB_OUTPUT"
-
-      - name: Check if version already exists on PyPI
-        id: published
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${{ steps.version.outputs.should_publish }}" != "true" ]; then
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          VERSION="${{ steps.version.outputs.current }}"
-          if curl -fsSL "https://pypi.org/pypi/mightydatainc-llm-conversation/json" | VERSION="$VERSION" python -c "import json,os,sys; data=json.load(sys.stdin); raise SystemExit(0 if os.environ['VERSION'] in data.get('releases', {}) else 1)"; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"current={current}\n")
+              output.write(f"latest={latest if latest is not None else ''}\n")
+              output.write(f"should_publish={str(publish).lower()}\n")
 
       - name: Publish to PyPI
-        if: steps.version.outputs.should_publish == 'true' && steps.version.outputs.changed == 'true' && steps.published.outputs.exists != 'true'
+        if: steps.version.outputs.should_publish == 'true'
         run: python -m twine upload --non-interactive dist/*
 
       - name: Report release decision
-        if: steps.version.outputs.should_publish != 'true' || steps.version.outputs.changed != 'true' || steps.published.outputs.exists == 'true'
+        if: steps.version.outputs.should_publish != 'true'
         run: |
           echo "Python publish skipped."
           echo "should_publish=${{ steps.version.outputs.should_publish }}"
-          echo "version_changed=${{ steps.version.outputs.changed }}"
           echo "current_version=${{ steps.version.outputs.current }}"
-          echo "previous_version=${{ steps.version.outputs.previous }}"
-          echo "already_published=${{ steps.published.outputs.exists }}"
+          echo "latest_pypi_version=${{ steps.version.outputs.latest }}"

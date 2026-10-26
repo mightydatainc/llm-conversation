@@ -83,6 +83,8 @@ Python unit tests are run with `unittest` (see the Testing section in `packages/
 
 Python and TypeScript packages are versioned and released from this monorepo using repository automation. Release mechanics are kept with each package and workflow configuration.
 
+The [Python release workflow](.github/workflows/python-release.yml) runs tests, builds the package, and validates artifacts before checking PyPI. On pushes to `main` or manual runs targeting `main`, it publishes when the version in `pyproject.toml` is greater than every version already on PyPI (using Python's PEP 440 version ordering), or when the package has no published releases. A successful follow-up commit can therefore publish an unreleased version after an earlier CI failure without another version bump. Equal or older versions and pull requests never publish. PyPI lookup failures other than a package-not-found response fail the job rather than trigger a publish.
+
 ## License
 
 MIT. See `LICENSE`.
