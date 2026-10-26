@@ -1,7 +1,7 @@
-GPT_MODEL_CHEAP = "gpt-4.1-nano"
-GPT_MODEL_STANDARD = "gpt-4.1"
-GPT_MODEL_SMART = "gpt-4.1"
-GPT_MODEL_VISION = "gpt-4.1"
+GPT_MODEL_CHEAP = "gpt-5.6-luna"
+GPT_MODEL_STANDARD = "gpt-6-luna"
+GPT_MODEL_SMART = "gpt-6-luna"
+GPT_MODEL_VISION = "gpt-6-luna"
 
 CLAUDE_MODEL_CHEAP = "claude-haiku-4-5-20251001"
 CLAUDE_MODEL_STANDARD = "claude-sonnet-4-6"

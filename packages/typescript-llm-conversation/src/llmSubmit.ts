@@ -29,6 +29,8 @@ import { llmSubmitShotgun } from './llmSubmitShotgun.js';
  *   parallel worker calls and the results are reconciled by a final call.
  * @property warningCallback - Optional callback invoked with a human-readable
  *   warning string on recoverable errors and incomplete responses.
+ * TODO: Allow the user to pass in a "reasoning effort" parameter, which passes
+ * through to the corresponding model API call.
  */
 export interface LLMSubmitOptions {
   model?: string;
@@ -203,6 +205,12 @@ export const llmSubmit = async (
             payloadBody.text = JSON.parse(JSON.stringify(options.jsonResponse));
           }
         }
+
+        // Disable reasoning in OpenAI, if we haven't done so already.
+        if (llmProviderName === 'openai' && !payloadBody.reasoning) {
+          payloadBody.reasoning = { effort: 'none' };
+        }
+
         let llmResponse = await openaiClient.responses!.create(payloadBody);
         llmReply = llmResponse.output_text.trim();
 

@@ -70,10 +70,10 @@ export const identifyLLMProvider = (
   return 'openai';
 };
 
-export const GPT_MODEL_CHEAP = 'gpt-4.1-nano';
-export const GPT_MODEL_STANDARD = 'gpt-4.1';
-export const GPT_MODEL_SMART = 'gpt-4.1';
-export const GPT_MODEL_VISION = 'gpt-4.1';
+export const GPT_MODEL_CHEAP = 'gpt-5.6-luna';
+export const GPT_MODEL_STANDARD = 'gpt-6-luna';
+export const GPT_MODEL_SMART = 'gpt-6-luna';
+export const GPT_MODEL_VISION = 'gpt-6-luna';
 
 export const CLAUDE_MODEL_CHEAP = 'claude-haiku-4-5-20251001';
 export const CLAUDE_MODEL_STANDARD = 'claude-sonnet-4-6';

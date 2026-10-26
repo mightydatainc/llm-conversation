@@ -348,10 +348,10 @@ Nested dict (1 item long):
       const tokenUsage: TokenUsage = openaiClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.allModels.input).toBeGreaterThan(700);
+      expect(tokenUsage.allModels.input).toBeGreaterThan(600);
       expect(tokenUsage.allModels.input).toBeLessThan(920);
       expect(tokenUsage.allModels.output).toBeGreaterThan(1300);
-      expect(tokenUsage.allModels.output).toBeLessThan(1600);
+      expect(tokenUsage.allModels.output).toBeLessThan(1700);
       expect(tokenUsage.allModels.total).toEqual(
         tokenUsage.allModels.input + tokenUsage.allModels.output
       );
@@ -373,7 +373,8 @@ Nested dict (1 item long):
     // Adjust this number as needed to achieve a reliable pass rate.
     // Huge number of shotguns barrels is needed to get a consistent pass on this test,
     // because the question is so unreliable.
-    const NUM_SHOTGUN_BARRELS = 4;
+    // NOTE: GPT 6 Luna is consistently worse at this than GPT 4.
+    const NUM_SHOTGUN_BARRELS = 7;
 
     const openaiClient = createClient();
     const convo = new LLMConversation(openaiClient);

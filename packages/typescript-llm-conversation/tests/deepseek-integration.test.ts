@@ -318,10 +318,10 @@ Nested dict (1 item long):
       const tokenUsage: TokenUsage = openaiClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.allModels.input).toBeGreaterThan(20);
-      expect(tokenUsage.allModels.input).toBeLessThan(100);
-      expect(tokenUsage.allModels.output).toBeGreaterThan(700);
-      expect(tokenUsage.allModels.output).toBeLessThan(1200);
+      expect(tokenUsage.allModels.input).toBeGreaterThan(35);
+      expect(tokenUsage.allModels.input).toBeLessThan(65);
+      expect(tokenUsage.allModels.output).toBeGreaterThan(550);
+      expect(tokenUsage.allModels.output).toBeLessThan(775);
       expect(tokenUsage.allModels.total).toEqual(
         tokenUsage.allModels.input + tokenUsage.allModels.output
       );
@@ -349,10 +349,10 @@ Nested dict (1 item long):
       const tokenUsage: TokenUsage = openaiClient.tokenUsage;
 
       expect(tokenUsage).toBeDefined();
-      expect(tokenUsage.allModels.input).toBeGreaterThan(850);
-      expect(tokenUsage.allModels.input).toBeLessThan(1200);
-      expect(tokenUsage.allModels.output).toBeGreaterThan(1600);
-      expect(tokenUsage.allModels.output).toBeLessThan(3000);
+      expect(tokenUsage.allModels.input).toBeGreaterThan(600);
+      expect(tokenUsage.allModels.input).toBeLessThan(920);
+      expect(tokenUsage.allModels.output).toBeGreaterThan(1300);
+      expect(tokenUsage.allModels.output).toBeLessThan(1700);
       expect(tokenUsage.allModels.total).toEqual(
         tokenUsage.allModels.input + tokenUsage.allModels.output
       );
