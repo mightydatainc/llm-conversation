@@ -149,6 +149,10 @@ def llm_submit(
                         except Exception as error:
                             raise TypeError(str(error)) from error
 
+                # Disable reasoning in OpenAI, if we haven't done so already.
+                if llm_provider_name == "openai" and not payload_body.get("reasoning"):
+                    payload_body["reasoning"] = {"effort": "none"}
+
                 llm_response = ai_client.responses.create(**payload_body)
 
                 if not isinstance(getattr(llm_response, "output_text", None), str):
