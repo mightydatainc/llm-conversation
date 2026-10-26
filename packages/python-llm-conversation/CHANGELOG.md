@@ -2,6 +2,13 @@
 
 All notable changes to this package will be documented in this file.
 
+## [1.0.11] - 2026-10-26
+
+### Changed
+
+- OpenAI has deprecated the GPT-4 model family. Default OpenAI models now map to `gpt-5.6-luna` (cheap) and `gpt-6-luna` (standard, smart, vision).
+- Bumped version to stay in sync with the TypeScript package (skipping 1.0.9 and 1.0.10, which had no Python-side changes).
+
 ## [1.0.8] - 2026-08-05
 
 ### Changed

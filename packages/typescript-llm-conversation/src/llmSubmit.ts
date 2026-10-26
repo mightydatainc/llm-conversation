@@ -15,7 +15,7 @@ import { llmSubmitShotgun } from './llmSubmitShotgun.js';
  * Options controlling the behaviour of {@link llmSubmit}.
  *
  * @property model - The model ID to use. If not specified, defaults to the "smart"
- *   tier model for the detected LLM provider (e.g. `gpt-4.1` for OpenAI).
+ *   tier model for the detected LLM provider (e.g. `gpt-6-luna` for OpenAI).
  * @property jsonResponse - When `true`, requests a plain JSON object response.
  *   When a `Record` or JSON string, that value is forwarded as the `text` format
  *   parameter (i.e. a JSON schema). Defaults to `undefined` (plain text).

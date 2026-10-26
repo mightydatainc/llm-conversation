@@ -82,7 +82,7 @@ class TestGPTLlmSubmit(unittest.TestCase):
         self.assertEqual(result, "ok")
         self.assertEqual(len(client.responses.create_calls), 1)
         request = client.responses.create_calls[0]
-        self.assertEqual(request.get("model"), "gpt-4.1")
+        self.assertEqual(request.get("model"), "gpt-6-luna")
         self.assertNotIn("text", request)
 
     def test_prepends_datetime_system_message_and_keeps_user_messages_after_it(self):
@@ -138,9 +138,9 @@ class TestGPTLlmSubmit(unittest.TestCase):
         self.assertEqual(client.token_usage["all_models"]["total"], 10)
         self.assertEqual(client.token_usage["all_models"]["input"], 4)
         self.assertEqual(client.token_usage["all_models"]["output"], 6)
-        self.assertEqual(client.token_usage["by_model"]["gpt-4.1"]["total"], 10)
-        self.assertEqual(client.token_usage["by_model"]["gpt-4.1"]["input"], 4)
-        self.assertEqual(client.token_usage["by_model"]["gpt-4.1"]["output"], 6)
+        self.assertEqual(client.token_usage["by_model"]["gpt-6-luna"]["total"], 10)
+        self.assertEqual(client.token_usage["by_model"]["gpt-6-luna"]["input"], 4)
+        self.assertEqual(client.token_usage["by_model"]["gpt-6-luna"]["output"], 6)
 
     def test_finds_and_parses_json_even_with_leading_and_trailing_cruft(self):
         client = FakeOpenAIClient(
